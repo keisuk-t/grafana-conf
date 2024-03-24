@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  grafana2:
+    image: grafana/grafana:10.4.0
+    container_name: grafana2
+    ports:
+    - "3001:3000"
+    volumes:
+    - "$PWD/grafana:/etc/grafana"
+    - "grafana2-storage:/var/lib/grafana"
+#  promtail:
+#    image: grafana/promtail:2.9.4
+#    container_name: promtail
+#    command: ["--config.file=/etc/grafana/config.yaml"]
+#    volumes:
+#    - "$PWD/promtail:/etc/grafana"
+#    - "/var/run/docker.sock:/var/run/docker.sock"
+volumes:
+  grafana2-storage: {}

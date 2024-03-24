@@ -1,0 +1,62 @@
+target: all
+common:
+  path_prefix: /var/lib/loki
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: memberlist
+memberlist:
+  join_members:
+    - loki:7946
+schema_config:
+  configs:
+  - from: 2024-03-23
+    store: boltdb-shipper
+    object_store: s3
+    schema: v13
+    index:
+      prefix: index_
+      period: 24h
+    chunks:
+      prefix: chunks_
+      period: 24h
+storage_config:
+  boltdb_shipper:
+    shared_store: s3
+  aws:
+    endpoint: "minio:9000"
+    bucketnames: "loki"
+    secret_access_key: "hogehoge"
+    access_key_id: "admin"
+    insecure: true
+    s3forcepathstyle: true
+ingester:
+  wal:
+    dir: /var/lib/loki/wal
+querier:
+  multi_tenant_queries_enabled: true
+ruler:
+  rule_path: "/var/lib/loki/rules"
+  alertmanager_url: http://mimir:8080/alertmanager
+  remote_write:
+    enabled: true
+    clients:
+      default:
+        url: http://mimir:8080/api/v1/push
+  storage:
+    type: s3
+    s3:
+      endpoint: "minio:9000"
+      bucketnames: "loki"
+      secret_access_key: "hogehoge"
+      access_key_id: "admin"
+      insecure: true
+      s3forcepathstyle: true
+compactor:
+  working_directory: /var/lib/loki
+  retention_enabled: true
+limits_config:
+  retention_period: 7d
+  allow_structured_metadata: true
+runtime_config:
+  file: /etc/grafana/runtime-config.yaml

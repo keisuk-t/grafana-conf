@@ -1,0 +1,68 @@
+metrics:
+  wal_directory: /var/lib/grafana-agent/wal
+  global:
+    remote_write:
+      - url: http://mimir:8080/api/v1/push
+        headers:
+          X-Scope-OrgID: "keisuk-t"
+
+logs:
+  configs:
+  - name: default
+    positions:
+      filename: ./positions.yaml
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+        headers:
+          X-Scope-OrgID: "keisuk-t"
+    scrape_configs:
+      - job_name: docker
+        docker_sd_configs:
+          - host: "unix:///var/run/docker.sock"
+            refresh_interval: 10s
+        relabel_configs:
+          - source_labels: ['__meta_docker_container_name']
+            regex: '/(.*)'
+            target_label: 'container'
+        pipeline_stages:
+        - match:
+            selector: '{container="loki"}'
+            stages:
+            - logfmt:
+                mapping:
+                  traceID:
+        - structured_metadata:
+            traceID:
+
+traces:
+  configs:
+  - name: tempo
+    automatic_logging:
+      roots: true
+    scrape_configs:
+      - job_name: docker
+        docker_sd_configs:
+          - host: "unix:///var/run/docker.sock"
+        relabel_configs:
+          - source_labels: ['__meta_docker_container_name']
+            regex: '/(.*)'
+            target_label: 'container'          
+    remote_write:
+      - endpoint: "tempo:4317"
+        insecure: true
+        headers:
+          X-Scope-OrgID: "keisuk-t"
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+      jaeger:
+        protocols:
+          grpc:
+          thrift_compact:
+      zipkin:
+
+integrations:
+  agent:
+    enabled: true

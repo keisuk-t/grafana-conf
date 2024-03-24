@@ -1,0 +1,56 @@
+target: all
+multitenancy_enabled: true
+
+server:
+  http_listen_port: 3200
+  #http_api_prefix: ""
+
+query_frontend:
+  multi_tenant_queries_enabled: true
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+        http:
+    zipkin:
+
+ingester:
+  lifecycler:
+    ring:
+      replication_factor: 1
+
+compactor:
+  compaction:
+    block_retention: 24h
+
+metrics_generator:
+  storage:
+    path: "/var/lib/tempo/metrics"
+    remote_write:
+      - url: http://mimir:8080/api/v1/push
+
+storage:
+  trace:
+    backend: s3
+    s3:
+      endpoint: "minio:9000"
+      bucket: "tempo"
+      insecure: true
+      access_key: "admin"
+      secret_key: "hogehoge"
+      forcepathstyle: true
+    wal:
+      path: "/var/lib/tempo/wal"
+
+overrides:
+  defaults:
+    ingestion:
+      rate_strategy: local
+      rate_limit_bytes: 15000000     # 15MB
+      burst_size_bytes: 20000000     # 20MB
+      max_traces_per_user: 10000
+
+usage_report:
+  reporting_enabled: false

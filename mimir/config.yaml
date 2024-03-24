@@ -1,0 +1,28 @@
+target: all,alertmanager
+tenant_federation:
+  enabled: true
+blocks_storage:
+  s3:
+    bucket_name: "mimir-metrics-1"
+common:
+  storage:
+    backend: s3
+    s3:
+      endpoint: "minio:9000" # MinIOのエンドポイント
+      bucket_name: "mimir" # 使用するバケット名
+      secret_access_key: "hogehoge" # MinIOのシークレットアクセスキー
+      access_key_id: "admin" # MinIOのアクセスキーID
+      insecure: true # MinIOはデフォルトで自己署名証明書を使用するため、通常はこの値をtrueに設定します
+      signature_version: v4
+      list_objects_version: "v2"
+      storage_class: "STANDARD"
+      native_aws_auth_enabled: false
+      part_size: 0
+      send_content_md5: false
+limits:
+   compactor_blocks_retention_period: 7d
+usage_stats:
+    enabled: false
+ingester:
+  ring:
+    replication_factor: 1

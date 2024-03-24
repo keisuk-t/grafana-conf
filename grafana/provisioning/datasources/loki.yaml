@@ -1,0 +1,46 @@
+apiVersion: 1
+datasources:
+  - uid: loki
+    name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      maxLines: 1000
+      httpHeaderName1: X-Scope-Orgid
+      derivedFields:
+        - datasourceUid: tempo
+          matcherRegex: traceID=(\w+)
+          matcherType: regex
+          name: TraceID
+          url: "${__value.raw}"
+          urlDisplayLabel: ""
+        - datasourceUid: tempo
+          matcherRegex: tid=(\w+)
+          matcherType: regex
+          name: tid
+          url: "${__value.raw}"
+          urlDisplayLabel: ""
+    secureJsonData:
+      httpHeaderValue1: keisuk-t
+  - uid: loki-journal
+    name: Loki.journal
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      maxLines: 1000
+      httpHeaderName1: X-Scope-Orgid
+    secureJsonData:
+      httpHeaderValue1: journal
+  - uid: loki-all
+    name: Loki.all
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      maxLines: 1000
+      httpHeaderName1: X-Scope-Orgid
+      manageAlerts: false
+    secureJsonData:
+      httpHeaderValue1: keisuk-t|journal
