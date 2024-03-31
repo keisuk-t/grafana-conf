@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: otel-example
+  name: otel-example
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-example
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: otel-example
+    spec:
+      containers:
+      - image: otel-example
+        imagePullPolicy: IfNotPresent
+        name: otel-example
+        resources: {}
+status: {}
