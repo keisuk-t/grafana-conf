@@ -1,0 +1,24 @@
+agent:
+  mode: 'flow'
+
+rbac:
+  create: true
+
+configMap:
+  create: false
+  name: grafana-agent
+  key: config.river
+
+agent:
+  enableReporting: false
+
+controller:
+  type: 'deployment'
+
+serviceMonitor:
+  enabled: true
+
+ingress:
+  enabled: true
+  hosts:
+    - agent.localhost

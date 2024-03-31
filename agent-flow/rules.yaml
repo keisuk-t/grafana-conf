@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: sample-rule
+spec:
+  groups:
+    - name: sample-rules
+      rules:
+        - alert: kube-state-metrics-down
+          expr: up{job="kube-state-metrics"} != 1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: kube-state-metrics down
+            description: kube-state-metrics {{ $labels.instance }} is down
