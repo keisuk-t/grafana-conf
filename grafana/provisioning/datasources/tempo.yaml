@@ -4,6 +4,7 @@ datasources:
     name: tempo
     type: tempo
     access: proxy
+    editable: true
     url: http://tempo:3200
     jsonData:
       httpHeaderName1: X-Scope-OrgID

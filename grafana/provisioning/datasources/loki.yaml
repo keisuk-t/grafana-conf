@@ -4,6 +4,7 @@ datasources:
     name: Loki
     type: loki
     access: proxy
+    editable: true
     url: http://loki:3100
     jsonData:
       maxLines: 1000
@@ -27,6 +28,7 @@ datasources:
     name: Loki.journal
     type: loki
     access: proxy
+    editable: true
     url: http://loki:3100
     jsonData:
       maxLines: 1000
@@ -37,6 +39,7 @@ datasources:
     name: Loki.all
     type: loki
     access: proxy
+    editable: true
     url: http://loki:3100
     jsonData:
       maxLines: 1000
