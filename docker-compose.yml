@@ -2,42 +2,76 @@ version: '3.8'
 name: grafana
 services:
   mimir:
-    image: grafana/mimir:2.11.0
+    image: grafana/mimir:3.1.1
     container_name: mimir
     command: ["--config.file=/etc/grafana/config.yaml"]
-    environment:
-    - "JAEGER_AGENT_HOST=agent"
-    - "JAEGER_AGENT_PORT=6831"
-    - "JAEGER_SAMPLER_TYPE=const"
-    - "JAEGAR_SAMPLER_PARAM=1"
     ports:
     - "8080:8080"
     volumes:
     - "$PWD/mimir:/etc/grafana"
     - "mimir-storage:/var/lib/grafana"
     working_dir: /var/lib/grafana
+    environment:
+    - HTTP_PROXY=
+    - HTTPS_PROXY=
+    - http_proxy=
+    - https_proxy=
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
   grafana:
-    image: grafana/grafana:10.4.0
+    image: grafana/grafana:12.4.4
     container_name: grafana
     ports:
     - "3000:3000"
     volumes:
     - "$PWD/grafana:/etc/grafana"
     - "grafana-storage:/var/lib/grafana"
+    environment:
+    - HTTP_PROXY=
+    - HTTPS_PROXY=
+    - http_proxy=
+    - https_proxy=
   minio:
     image: minio/minio
     container_name: minio
     environment:
     - "MINIO_ROOT_USER=admin"
     - "MINIO_ROOT_PASSWORD=hogehoge"
+    - HTTP_PROXY=
+    - HTTPS_PROXY=
+    - http_proxy=
+    - https_proxy=
     ports:
     - "9000:9000"
     - "9001:9001"
     volumes:
     - "minio-storage:/data"
     command: server /data --console-address ":9001"
+  minio-init:
+    image: minio/minio
+    container_name: minio-init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set myminio http://minio:9000 admin hogehoge; do
+        echo 'Waiting for MinIO...'
+        sleep 1
+      done;
+      mc mb --ignore-existing myminio/loki;
+      mc mb --ignore-existing myminio/mimir;
+      mc mb --ignore-existing myminio/mimir-metrics-1;
+      mc mb --ignore-existing myminio/tempo;
+      exit 0;
+      "
+    environment:
+    - HTTP_PROXY=
+    - HTTPS_PROXY=
+    - http_proxy=
+    - https_proxy=
   loki:
-    image: grafana/loki:2.9.4
+    image: grafana/loki:3.7.2
     container_name: loki
     command: ["--config.file=/etc/grafana/config.yaml"]
     environment:
@@ -45,6 +79,10 @@ services:
     - "JAEGER_AGENT_PORT=6831"
     - "JAEGER_SAMPLER_TYPE=const"
     - "JAEGAR_SAMPLER_PARAM=1"
+    - HTTP_PROXY=
+    - HTTPS_PROXY=
+    - http_proxy=
+    - https_proxy=
     ports:
     - "3100:3100"
     volumes:
@@ -52,9 +90,13 @@ services:
     # - "loki-storage:/var/lib/loki"    # permission denied. uid 10001
     - "/var/lib/loki:/var/lib/loki"     # mkdir /var/lib/loki; chown 10001:10001 /var/lib/loki
     working_dir: /var/lib/loki
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
   tempo:
-    image: grafana/tempo:2.4.1
+    image: grafana/tempo:3.0.2
     container_name: tempo
+    user: root
     command: ["--config.file=/etc/grafana/config.yaml"]
     ports:
     - "3200:3200"   # tempo
@@ -63,20 +105,14 @@ services:
     - "$PWD/tempo:/etc/grafana"
     - "tempo-storage:/var/lib/tempo"
     working_dir: /var/lib/tempo
-  agent:
-    image: grafana/agent:v0.40.3
-    container_name: agent
-    ports:
-     - "4317:4317"   # otlp grpc
-     - "4318:4318"   # otlp http
-     - "9411:9411"   # zipkin
-     - "14250:14250" # jaeger grpc
-     - "6831:6831"   # jaeger compact
-    volumes:
-    - "/var/run/docker.sock:/var/run/docker.sock"
-    - "$PWD/agent:/etc/grafana"
-    - "agent-storage:/var/lib/grafana-agent"
-    command: ["--config.file=/etc/grafana/agent.yaml"]
+    environment:
+    - HTTP_PROXY=
+    - HTTPS_PROXY=
+    - http_proxy=
+    - https_proxy=
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
 volumes:
   grafana-storage: {}
   grafana2-storage: {}

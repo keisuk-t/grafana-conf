@@ -13,23 +13,20 @@ distributor:
     otlp:
       protocols:
         grpc:
+          endpoint: "0.0.0.0:4317"   # 省略時は 127.0.0.1 になりコンテナ外から届かない
         http:
+          endpoint: "0.0.0.0:4318"
     zipkin:
-
-ingester:
-  lifecycler:
-    ring:
-      replication_factor: 1
-
-compactor:
-  compaction:
-    block_retention: 24h
 
 metrics_generator:
   storage:
     path: "/var/lib/tempo/metrics"
     remote_write:
       - url: http://mimir:8080/api/v1/push
+
+backend_worker:
+  compaction:
+    block_retention: 24h
 
 storage:
   trace:

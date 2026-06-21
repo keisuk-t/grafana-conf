@@ -11,7 +11,7 @@ memberlist:
 schema_config:
   configs:
   - from: 2024-03-23
-    store: boltdb-shipper
+    store: tsdb
     object_store: s3
     schema: v13
     index:
@@ -21,8 +21,9 @@ schema_config:
       prefix: chunks_
       period: 24h
 storage_config:
-  boltdb_shipper:
-    shared_store: s3
+  tsdb_shipper:
+    active_index_directory: /var/lib/loki/tsdb-index
+    cache_location: /var/lib/loki/tsdb-cache
   aws:
     endpoint: "minio:9000"
     bucketnames: "loki"
@@ -55,6 +56,7 @@ ruler:
 compactor:
   working_directory: /var/lib/loki
   retention_enabled: true
+  delete_request_store: s3
 limits_config:
   retention_period: 7d
   allow_structured_metadata: true
