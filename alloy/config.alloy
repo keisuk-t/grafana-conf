@@ -1,0 +1,59 @@
+otelcol.receiver.otlp "default" {
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+ 
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+ 
+  output {
+    metrics = [otelcol.exporter.prometheus.default.input]
+    logs    = [otelcol.exporter.loki.default.input]
+    traces  = [otelcol.exporter.otlp.tempo.input]
+  }
+}
+ 
+otelcol.exporter.prometheus "default" {
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+ 
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = "http://localhost:8080/api/v1/push"
+    headers = {
+      "X-Scope-OrgID" = "keisuk-t",
+    }
+  }
+}
+ 
+otelcol.exporter.loki "default" {
+  forward_to = [loki.write.default.receiver]
+}
+ 
+loki.write "default" {
+  endpoint {
+    url = "http://localhost:3100/loki/api/v1/push"
+    headers = {
+      "X-Scope-OrgID" = "keisuk-t",
+    }
+  }
+}
+ 
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "localhost:14317"
+    compression = "none"
+    headers = {
+      "X-Scope-OrgID" = "keisuk-t",
+    }
+    tls {
+      insecure = true
+    }
+  }
+}
+
+logging {
+  level = "info"
+}
+
